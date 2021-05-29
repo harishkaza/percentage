@@ -10,11 +10,12 @@ namespace percentage
         [DllImport("user32.dll", CharSet = CharSet.Auto)]
         static extern bool DestroyIcon(IntPtr handle);
 
-        private const string iconFont = "Source Sans Pro";
-        private const int iconFontSize = 40;
+        private const string iconFont = "Jersey M54";
+        private const int iconFontSize = 16;
 
         private string batteryPercentage;
         private NotifyIcon notifyIcon;
+        private string batteryChargeStatus;
 
         public TrayIcon()
         {
@@ -47,14 +48,38 @@ namespace percentage
         {
             PowerStatus powerStatus = SystemInformation.PowerStatus;
             batteryPercentage = (powerStatus.BatteryLifePercent * 100).ToString();
+            batteryChargeStatus = (powerStatus.BatteryChargeStatus).ToString();
 
-            using (Bitmap bitmap = new Bitmap(DrawText(batteryPercentage, new Font(iconFont, iconFontSize), Color.White, Color.Transparent)))
+            Color whiteColor = Color.White;
+            Color greenColor = System.Drawing.ColorTranslator.FromHtml("#7CFC00");
+            Color redColor = Color.Red;
+
+            Color color;
+
+
+            if (batteryChargeStatus.Contains("Charging"))
+            {
+                color = greenColor;
+            }
+            else
+            {
+                if (Int32.Parse(batteryPercentage) <= 30)
+                {
+                    color = redColor;
+                }
+                else
+                {
+                    color = whiteColor;
+                }
+            }
+
+            using (Bitmap bitmap = new Bitmap(DrawText(batteryPercentage, new Font(iconFont, iconFontSize), color, Color.Transparent)))
             {
                 System.IntPtr intPtr = bitmap.GetHicon();
                 try
                 {
                     using (Icon icon = Icon.FromHandle(intPtr))
-                    {
+                    {                        
                         notifyIcon.Icon = icon;
                         notifyIcon.Text = batteryPercentage + "%";
                     }
