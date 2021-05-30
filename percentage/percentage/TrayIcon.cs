@@ -2,6 +2,8 @@
 using System.Drawing;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
+using percentage.Properties;
+using WMPRichPreviewLauncher;
 
 namespace percentage
 {
@@ -11,11 +13,14 @@ namespace percentage
         static extern bool DestroyIcon(IntPtr handle);
 
         private const string iconFont = "Jersey M54";
-        private const int iconFontSize = 16;
+        private const int iconFontSize = 30;
 
         private string batteryPercentage;
         private NotifyIcon notifyIcon;
         private string batteryChargeStatus;
+        private int count = 1;
+        private string powerLineStatus;
+        private DateTime lastExecutedTime = new DateTime(1900, 1, 1);
 
         public TrayIcon()
         {
@@ -49,22 +54,48 @@ namespace percentage
             PowerStatus powerStatus = SystemInformation.PowerStatus;
             batteryPercentage = (powerStatus.BatteryLifePercent * 100).ToString();
             batteryChargeStatus = (powerStatus.BatteryChargeStatus).ToString();
+            powerLineStatus = (powerStatus.PowerLineStatus).ToString();
 
             Color whiteColor = Color.White;
             Color greenColor = System.Drawing.ColorTranslator.FromHtml("#7CFC00");
             Color redColor = Color.Red;
 
-            Color color;
+            Color color = whiteColor;
 
-
-            if (batteryChargeStatus.Contains("Charging"))
+            if (powerLineStatus.ToLower() == "online")
             {
+                if (Int32.Parse(batteryPercentage) >= 80)
+                {
+                    TimeSpan duration = DateTime.Now - lastExecutedTime;
+
+                    if (duration.TotalMinutes >= 5)
+                    {
+                        System.Media.SoundPlayer player = new System.Media.SoundPlayer(@"C:\Users\Harish\Documents\GitHub\percentage\percentage\percentage\Sounds\HighBattery.wav");
+                        player.Play();
+                        lastExecutedTime = DateTime.Now;
+                    }
+                }
                 color = greenColor;
+            }
+            else if (batteryChargeStatus.ToString().ToLower().Contains("not charging"))
+            {
+                //Should use relative path or through resources.
+                System.Media.SoundPlayer player = new System.Media.SoundPlayer(@"C:\Users\Harish\Documents\GitHub\percentage\percentage\percentage\Sounds\LowBattery.wav");
+                player.Play();
             }
             else
             {
                 if (Int32.Parse(batteryPercentage) <= 30)
                 {
+                    TimeSpan duration = DateTime.Now - lastExecutedTime;
+
+                    if (duration.TotalMinutes >= 5)
+                    {
+                        //Should use relative path or through resources.
+                        System.Media.SoundPlayer player = new System.Media.SoundPlayer(@"C:\Users\Harish\Documents\GitHub\percentage\percentage\percentage\Sounds\LowBattery.wav");
+                        player.Play();
+                        lastExecutedTime = DateTime.Now;
+                    }
                     color = redColor;
                 }
                 else
@@ -73,13 +104,13 @@ namespace percentage
                 }
             }
 
-            using (Bitmap bitmap = new Bitmap(DrawText(batteryPercentage, new Font(iconFont, iconFontSize), color, Color.Transparent)))
+            using (Bitmap bitmap = new Bitmap(DrawText(batteryPercentage, new Font(iconFont, iconFontSize, FontStyle.Bold), color, Color.Transparent)))
             {
                 System.IntPtr intPtr = bitmap.GetHicon();
                 try
                 {
                     using (Icon icon = Icon.FromHandle(intPtr))
-                    {                        
+                    {
                         notifyIcon.Icon = icon;
                         notifyIcon.Text = batteryPercentage + "%";
                     }
