@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Configuration;
 using System.Drawing;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
@@ -69,8 +70,8 @@ namespace percentage
                     TimeSpan duration = DateTime.Now - lastExecutedTime;
 
                     if (duration.TotalMinutes >= 5)
-                    {
-                        System.Media.SoundPlayer player = new System.Media.SoundPlayer(@"C:\Users\Harish\Documents\GitHub\percentage\percentage\percentage\Sounds\HighBattery.wav");
+                    {                        
+                        System.Media.SoundPlayer player = new System.Media.SoundPlayer(ConfigurationManager.AppSettings["HighBatterySound"]);
                         player.Play();
                         lastExecutedTime = DateTime.Now;
                     }
@@ -80,7 +81,7 @@ namespace percentage
             else if (batteryChargeStatus.ToString().ToLower().Contains("not charging"))
             {
                 //Should use relative path or through resources.
-                System.Media.SoundPlayer player = new System.Media.SoundPlayer(@"C:\Users\Harish\Documents\GitHub\percentage\percentage\percentage\Sounds\LowBattery.wav");
+                System.Media.SoundPlayer player = new System.Media.SoundPlayer(ConfigurationManager.AppSettings["LowBatterySound"]);
                 player.Play();
             }
             else
@@ -92,7 +93,7 @@ namespace percentage
                     if (duration.TotalMinutes >= 5)
                     {
                         //Should use relative path or through resources.
-                        System.Media.SoundPlayer player = new System.Media.SoundPlayer(@"C:\Users\Harish\Documents\GitHub\percentage\percentage\percentage\Sounds\LowBattery.wav");
+                        System.Media.SoundPlayer player = new System.Media.SoundPlayer(ConfigurationManager.AppSettings["LowBatterySound"]);
                         player.Play();
                         lastExecutedTime = DateTime.Now;
                     }
